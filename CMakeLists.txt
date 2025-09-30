@@ -40,3 +40,35 @@ endif()
 
 # Install target
 install(TARGETS img2pass DESTINATION bin)
+
+# Post-build installation script
+if(WIN32)
+    add_custom_command(TARGET img2pass POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Para instalar automáticamente, ejecuta: install.bat"
+        COMMENT "Build completado - Windows"
+    )
+else()
+    add_custom_command(TARGET img2pass POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Para instalar automáticamente, ejecuta: ./install.sh"
+        COMMAND chmod +x ${CMAKE_SOURCE_DIR}/install.sh
+        COMMENT "Build completado - Unix/Linux/macOS"
+    )
+endif()
+
+# Opción para instalación automática después del build
+option(AUTO_INSTALL "Ejecutar instalación automáticamente después del build" OFF)
+
+if(AUTO_INSTALL)
+    if(WIN32)
+        add_custom_command(TARGET img2pass POST_BUILD
+            COMMAND ${CMAKE_SOURCE_DIR}/install.bat
+            COMMENT "Ejecutando instalación automática en Windows"
+        )
+    else()
+        add_custom_command(TARGET img2pass POST_BUILD
+            COMMAND chmod +x ${CMAKE_SOURCE_DIR}/install.sh
+            COMMAND ${CMAKE_SOURCE_DIR}/install.sh
+            COMMENT "Ejecutando instalación automática en Unix/Linux/macOS"
+        )
+    endif()
+endif()

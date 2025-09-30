@@ -40,7 +40,9 @@ IMG2PASS utiliza criptografía moderna para crear contraseñas determinísticas 
 
 ## 🚀 Instalación
 
-### Linux/Ubuntu
+### Compilación Rápida
+
+#### Linux/Ubuntu
 ```bash
 # Instalar dependencias
 sudo apt update
@@ -53,11 +55,11 @@ mkdir build && cd build
 cmake ..
 make
 
-# Ejecutar
-./img2pass
+# Instalación automática
+./install.sh
 ```
 
-### macOS
+#### macOS
 ```bash
 # Instalar dependencias (usando Homebrew)
 brew install cmake openssl
@@ -69,28 +71,49 @@ mkdir build && cd build
 cmake ..
 make
 
-# Ejecutar
-./img2pass
+# Instalación automática
+./install.sh
 ```
 
-### Windows
+#### Windows (MinGW)
 ```powershell
-# Instalar dependencias
-# 1. Instalar Visual Studio Community con C/C++
-# 2. Instalar CMake desde https://cmake.org/download/
-# 3. Instalar OpenSSL desde https://slproweb.com/products/Win32OpenSSL.html
+# Instalar dependencias con Chocolatey
+choco install mingw openssl cmake
 
 # Compilar
 git clone <repository-url>
 cd img2pass
 mkdir build
 cd build
-cmake .. -G "Visual Studio 16 2019"
+cmake .. -G "MinGW Makefiles"
 cmake --build . --config Release
 
-# Ejecutar
-.\Release\img2pass.exe
+# Instalación automática
+install.bat
 ```
+
+### Instalación Automática Post-Build
+
+Para instalar automáticamente después de compilar:
+
+```bash
+# Linux/macOS
+cmake .. -DAUTO_INSTALL=ON
+make
+
+# Windows
+cmake .. -DAUTO_INSTALL=ON -G "MinGW Makefiles"
+cmake --build .
+```
+
+### Características de Instalación
+
+✅ **Detección automática del PATH**
+✅ **Instalación en ~/.local/bin (Unix) o %USERPROFILE%\.local\bin (Windows)**
+✅ **Actualización automática del shell config**
+✅ **Soporte para múltiples shells** (bash, zsh, fish)
+✅ **Detección de binarios existentes**
+✅ **Interfaz user-friendly con drag & drop de archivos**
 
 ## 📖 Guía de Uso
 
