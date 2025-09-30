@@ -34,6 +34,58 @@ void menu_generar_clave(const config_t *config) {
     getchar();
 }
 
+void menu_validar_contraseña(const config_t *config) {
+    char nombre_imagen[MAX_FILENAME_LENGTH];
+    char nombre_clave[MAX_FILENAME_LENGTH];
+    int opcion_algoritmo;
+    hash_algorithm_t algoritmo;
+    char* password = NULL;
+
+    mostrar_menu_validar_contraseña();
+
+    printf("Nombre de la imagen en el vault (sin extensión): ");
+    solicitar_string("", nombre_imagen, sizeof(nombre_imagen));
+
+    if (strlen(nombre_imagen) == 0) {
+        printf("Error: Debe ingresar el nombre de la imagen.\n");
+        return;
+    }
+
+    printf("Nombre de la clave privada (sin extensión): ");
+    solicitar_string("", nombre_clave, sizeof(nombre_clave));
+
+    if (strlen(nombre_clave) == 0) {
+        printf("Error: Debe ingresar el nombre de la clave.\n");
+        return;
+    }
+
+    mostrar_algoritmos_hash();
+    opcion_algoritmo = solicitar_opcion_numerica(1, 4);
+
+    switch(opcion_algoritmo) {
+        case 1: algoritmo = HASH_MD5; break;
+        case 2: algoritmo = HASH_SHA1; break;
+        case 3: algoritmo = HASH_SHA256; break;
+        case 4: algoritmo = HASH_SHA512; break;
+        default: algoritmo = HASH_SHA256; break;
+    }
+
+    printf("\nValidando contraseña...\n");
+    password = validar_contraseña_desde_vault(nombre_imagen, nombre_clave, algoritmo, config);
+
+    if (password) {
+        printf("\n========================================\n");
+        printf("Contraseña: %s\n", password);
+        printf("========================================\n");
+        free(password);
+    } else {
+        printf("Error: No se pudo validar la contraseña.\n");
+    }
+
+    printf("\nPresione Enter para continuar...");
+    getchar();
+}
+
 void menu_generar_contraseña(const config_t *config) {
     char img_path[MAX_PATH_LENGTH];
     char key_path[MAX_PATH_LENGTH];
@@ -130,7 +182,7 @@ int main(void) {
         printf("✓ Directorio de trabajo: %s\n\n", config.vault_path);
 
         mostrar_menu_principal();
-        opcion = solicitar_opcion_numerica(1, 3);
+        opcion = solicitar_opcion_numerica(1, 4);
 
         switch(opcion) {
             case 1:
@@ -140,6 +192,9 @@ int main(void) {
                 menu_generar_contraseña(&config);
                 break;
             case 3:
+                menu_validar_contraseña(&config);
+                break;
+            case 4:
                 printf("¡Hasta luego!\n");
                 EVP_cleanup();
                 ERR_free_strings();

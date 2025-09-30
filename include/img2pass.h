@@ -72,11 +72,13 @@ char* procesar_imagen_y_clave(const char* img_path, const char* key_path, hash_a
 void copiar_imagen_con_nombre(const char* origen, const char* destino);
 unsigned char* leer_archivo_completo(const char* filepath, size_t* file_size);
 char* hash_to_password(const unsigned char* hash, size_t hash_len);
+char* validar_contraseña_desde_vault(const char* nombre_imagen, const char* nombre_clave, hash_algorithm_t algoritmo, const config_t* config);
 
 // ui.c
 void mostrar_menu_principal(void);
 void mostrar_menu_generar_clave(void);
 void mostrar_menu_generar_contraseña(void);
+void mostrar_menu_validar_contraseña(void);
 void mostrar_algoritmos_hash(void);
 void mostrar_niveles_encriptacion(void);
 void limpiar_pantalla(void);

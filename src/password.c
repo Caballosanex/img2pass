@@ -138,3 +138,112 @@ char* hash_to_password(const unsigned char* hash, size_t hash_len) {
     password[PASSWORD_LENGTH] = '\0';
     return password;
 }
+
+char* validar_contraseña_desde_vault(const char* nombre_imagen, const char* nombre_clave, hash_algorithm_t algoritmo, const config_t* config) {
+    char img_path[MAX_PATH_LENGTH];
+    char key_path[MAX_PATH_LENGTH];
+    char images_dir[MAX_PATH_LENGTH];
+    char keys_dir[MAX_PATH_LENGTH];
+
+    // Construir rutas del vault
+    snprintf(images_dir, sizeof(images_dir), "%s%s%s", config->vault_path, PATH_SEPARATOR, IMAGES_DIR_NAME);
+    snprintf(keys_dir, sizeof(keys_dir), "%s%s%s", config->vault_path, PATH_SEPARATOR, KEYS_DIR_NAME);
+
+    // Buscar imagen en el vault (probando extensiones comunes)
+    const char* extensiones[] = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp", ""};
+    bool imagen_encontrada = false;
+
+    for (int i = 0; extensiones[i][0] != '\0' || i == 0; i++) {
+        if (i == sizeof(extensiones)/sizeof(extensiones[0]) - 1) {
+            // Última iteración: sin extensión
+            snprintf(img_path, sizeof(img_path), "%s%s%s", images_dir, PATH_SEPARATOR, nombre_imagen);
+        } else {
+            snprintf(img_path, sizeof(img_path), "%s%s%s%s", images_dir, PATH_SEPARATOR, nombre_imagen, extensiones[i]);
+        }
+
+        if (archivo_existe(img_path)) {
+            imagen_encontrada = true;
+            break;
+        }
+    }
+
+    if (!imagen_encontrada) {
+        printf("Error: No se encontró la imagen '%s' en el vault.\n", nombre_imagen);
+        printf("Ubicación buscada: %s\n", images_dir);
+        return NULL;
+    }
+
+    // Construir ruta de la clave
+    snprintf(key_path, sizeof(key_path), "%s%s%s.pem", keys_dir, PATH_SEPARATOR, nombre_clave);
+
+    if (!validar_clave_privada(key_path)) {
+        printf("Error: La clave privada '%s' no es válida o no existe.\n", nombre_clave);
+        printf("Ubicación buscada: %s\n", key_path);
+        return NULL;
+    }
+
+    printf("Imagen encontrada: %s\n", img_path);
+    printf("Clave encontrada: %s\n", key_path);
+
+    // Reutilizar la lógica existente sin copiar
+    size_t img_size = 0;
+    unsigned char* img_data = NULL;
+    unsigned char* signature = NULL;
+    size_t sig_len = 0;
+    unsigned char* hash_result = NULL;
+    char* password = NULL;
+
+    printf("Leyendo imagen...\n");
+    img_data = leer_archivo_completo(img_path, &img_size);
+    if (!img_data) {
+        printf("Error: No se pudo leer la imagen.\n");
+        return NULL;
+    }
+
+    printf("Firmando datos de la imagen...\n");
+    signature = firmar_datos(img_data, img_size, key_path, &sig_len);
+    if (!signature) {
+        printf("Error: No se pudo firmar la imagen.\n");
+        free(img_data);
+        return NULL;
+    }
+
+    printf("Generando hash %s...\n", get_hash_name(algoritmo));
+    hash_result = malloc(64);
+    if (!hash_result) {
+        printf("Error: No se pudo asignar memoria para el hash.\n");
+        goto cleanup;
+    }
+
+    size_t hash_len = 0;
+    switch(algoritmo) {
+        case HASH_MD5:
+            MD5(signature, sig_len, hash_result);
+            hash_len = MD5_DIGEST_LENGTH;
+            break;
+        case HASH_SHA1:
+            SHA1(signature, sig_len, hash_result);
+            hash_len = SHA_DIGEST_LENGTH;
+            break;
+        case HASH_SHA256:
+            SHA256(signature, sig_len, hash_result);
+            hash_len = SHA256_DIGEST_LENGTH;
+            break;
+        case HASH_SHA512:
+            SHA512(signature, sig_len, hash_result);
+            hash_len = SHA512_DIGEST_LENGTH;
+            break;
+        default:
+            printf("Error: Algoritmo de hash no soportado.\n");
+            goto cleanup;
+    }
+
+    printf("Convirtiendo a contraseña de %d caracteres...\n", PASSWORD_LENGTH);
+    password = hash_to_password(hash_result, hash_len);
+
+cleanup:
+    if (img_data) free(img_data);
+    if (signature) free(signature);
+    if (hash_result) free(hash_result);
+    return password;
+}

@@ -4,7 +4,8 @@ void mostrar_menu_principal(void) {
     printf("=== IMG2PASS - Generador de Contraseñas ===\n");
     printf("1. Generar nueva clave privada\n");
     printf("2. Generar contraseña desde imagen\n");
-    printf("3. Salir\n");
+    printf("3. Validar contraseña existente\n");
+    printf("4. Salir\n");
     printf("Seleccione una opción: ");
 }
 
@@ -14,6 +15,10 @@ void mostrar_menu_generar_clave(void) {
 
 void mostrar_menu_generar_contraseña(void) {
     printf("\n=== Generar Contraseña ===\n");
+}
+
+void mostrar_menu_validar_contraseña(void) {
+    printf("\n=== Validar Contraseña ===\n");
 }
 
 void mostrar_algoritmos_hash(void) {
