@@ -82,6 +82,7 @@ void mostrar_niveles_encriptacion(void);
 void limpiar_pantalla(void);
 int solicitar_opcion_numerica(int min, int max);
 void solicitar_string(const char* prompt, char* buffer, size_t buffer_size);
+void solicitar_archivo(const char* prompt, char* buffer, size_t buffer_size);
 
 // utils.c
 bool archivo_existe(const char* ruta);

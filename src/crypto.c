@@ -70,8 +70,9 @@ bool validar_clave_privada(const char* ruta) {
 unsigned char* firmar_datos(const unsigned char* data, size_t data_len, const char* key_path, size_t* sig_len) {
     FILE *key_file = NULL;
     EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
+    EVP_MD_CTX *md_ctx = NULL;
     unsigned char *signature = NULL;
+    unsigned char hash[SHA256_DIGEST_LENGTH];
 
     key_file = fopen(key_path, "r");
     if (!key_file) {
@@ -86,19 +87,27 @@ unsigned char* firmar_datos(const unsigned char* data, size_t data_len, const ch
         return NULL;
     }
 
-    ctx = EVP_PKEY_CTX_new(pkey, NULL);
-    if (!ctx) {
-        printf("Error: No se pudo crear el contexto de firma.\n");
+    // Crear hash SHA256 de los datos primero
+    SHA256(data, data_len, hash);
+
+    md_ctx = EVP_MD_CTX_new();
+    if (!md_ctx) {
+        printf("Error: No se pudo crear el contexto de digest.\n");
         EVP_PKEY_free(pkey);
         return NULL;
     }
 
-    if (EVP_PKEY_sign_init(ctx) <= 0) {
-        printf("Error: No se pudo inicializar la firma.\n");
+    if (EVP_DigestSignInit(md_ctx, NULL, EVP_sha256(), NULL, pkey) <= 0) {
+        printf("Error: No se pudo inicializar la firma con digest.\n");
         goto cleanup;
     }
 
-    if (EVP_PKEY_sign(ctx, NULL, sig_len, data, data_len) <= 0) {
+    if (EVP_DigestSignUpdate(md_ctx, data, data_len) <= 0) {
+        printf("Error: No se pudo actualizar el digest.\n");
+        goto cleanup;
+    }
+
+    if (EVP_DigestSignFinal(md_ctx, NULL, sig_len) <= 0) {
         printf("Error: No se pudo determinar el tamaño de la firma.\n");
         goto cleanup;
     }
@@ -109,7 +118,7 @@ unsigned char* firmar_datos(const unsigned char* data, size_t data_len, const ch
         goto cleanup;
     }
 
-    if (EVP_PKEY_sign(ctx, signature, sig_len, data, data_len) <= 0) {
+    if (EVP_DigestSignFinal(md_ctx, signature, sig_len) <= 0) {
         printf("Error: No se pudo crear la firma.\n");
         free(signature);
         signature = NULL;
@@ -117,7 +126,7 @@ unsigned char* firmar_datos(const unsigned char* data, size_t data_len, const ch
     }
 
 cleanup:
-    if (ctx) EVP_PKEY_CTX_free(ctx);
+    if (md_ctx) EVP_MD_CTX_free(md_ctx);
     if (pkey) EVP_PKEY_free(pkey);
     return signature;
 }

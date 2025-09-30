@@ -46,16 +46,14 @@ void menu_generar_contraseña(const config_t *config) {
 
     mostrar_menu_generar_contraseña();
 
-    printf("Ruta de la imagen: ");
-    solicitar_string("", img_path, sizeof(img_path));
+    solicitar_archivo("Ruta de la imagen:", img_path, sizeof(img_path));
 
     if (!archivo_existe(img_path)) {
         printf("Error: La imagen especificada no existe.\n");
         return;
     }
 
-    printf("Ruta de la clave privada: ");
-    solicitar_string("", key_path, sizeof(key_path));
+    solicitar_archivo("Ruta de la clave privada:", key_path, sizeof(key_path));
 
     if (!validar_clave_privada(key_path)) {
         printf("Error: La clave privada no es válida o no existe.\n");

@@ -71,3 +71,55 @@ void solicitar_string(const char* prompt, char* buffer, size_t buffer_size) {
         buffer[strcspn(buffer, "\n")] = 0;
     }
 }
+
+void solicitar_archivo(const char* prompt, char* buffer, size_t buffer_size) {
+    char input[MAX_PATH_LENGTH];
+
+    while (1) {
+        printf("%s", prompt);
+        printf("\n💡 Arrastra el archivo aquí o escribe la ruta completa:\n");
+        printf("Ruta: ");
+        fflush(stdout);
+
+        if (fgets(input, sizeof(input), stdin) != NULL) {
+            input[strcspn(input, "\n")] = 0;
+
+            // Limpiar espacios al inicio y final
+            char *start = input;
+            while (*start == ' ' || *start == '\t') start++;
+
+            char *end = start + strlen(start) - 1;
+            while (end > start && (*end == ' ' || *end == '\t' || *end == '\'' || *end == '\"')) {
+                *end = '\0';
+                end--;
+            }
+
+            // Remover comillas si las hay (drag & drop suele agregarlas)
+            if (*start == '\'' || *start == '\"') {
+                start++;
+            }
+
+            // Verificar si existe
+            FILE *test = fopen(start, "r");
+            if (test) {
+                fclose(test);
+                strncpy(buffer, start, buffer_size - 1);
+                buffer[buffer_size - 1] = '\0';
+                return;
+            } else {
+                printf("❌ Archivo no encontrado: %s\n", start);
+                printf("💡 ¿Continuar de todas formas? (s/n): ");
+
+                char c;
+                if (scanf(" %c", &c) == 1) {
+                    getchar(); // limpiar buffer
+                    if (c == 's' || c == 'S') {
+                        strncpy(buffer, start, buffer_size - 1);
+                        buffer[buffer_size - 1] = '\0';
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
