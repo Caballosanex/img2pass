@@ -16,11 +16,14 @@
 #ifdef _WIN32
     #include <windows.h>
     #include <direct.h>
+    #include <conio.h>
     #define PATH_SEPARATOR "\\"
     #define mkdir(path, mode) _mkdir(path)
 #else
     #include <unistd.h>
     #include <sys/types.h>
+    #include <dirent.h>
+    #include <termios.h>
     #define PATH_SEPARATOR "/"
 #endif
 
@@ -85,6 +88,9 @@ void limpiar_pantalla(void);
 int solicitar_opcion_numerica(int min, int max);
 void solicitar_string(const char* prompt, char* buffer, size_t buffer_size);
 void solicitar_archivo(const char* prompt, char* buffer, size_t buffer_size);
+void solicitar_archivo_con_autocompletado(const char* prompt, char* buffer, size_t buffer_size);
+void solicitar_nombre_archivo_vault(const char* prompt, char* buffer, size_t buffer_size, const char* directorio, const char* extension_filtro);
+int autocompletar_archivos_vault(char* buffer, size_t buffer_size, int cursor_pos, const char* directorio, const char* extension_filtro);
 
 // utils.c
 bool archivo_existe(const char* ruta);

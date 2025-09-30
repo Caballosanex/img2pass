@@ -37,22 +37,26 @@ void menu_generar_clave(const config_t *config) {
 void menu_validar_contraseña(const config_t *config) {
     char nombre_imagen[MAX_FILENAME_LENGTH];
     char nombre_clave[MAX_FILENAME_LENGTH];
+    char images_dir[MAX_PATH_LENGTH];
+    char keys_dir[MAX_PATH_LENGTH];
     int opcion_algoritmo;
     hash_algorithm_t algoritmo;
     char* password = NULL;
 
     mostrar_menu_validar_contraseña();
 
-    printf("Nombre de la imagen en el vault (sin extensión): ");
-    solicitar_string("", nombre_imagen, sizeof(nombre_imagen));
+    // Construir rutas de directorios para autocompletado
+    snprintf(images_dir, sizeof(images_dir), "%s%s%s", config->vault_path, PATH_SEPARATOR, IMAGES_DIR_NAME);
+    snprintf(keys_dir, sizeof(keys_dir), "%s%s%s", config->vault_path, PATH_SEPARATOR, KEYS_DIR_NAME);
+
+    solicitar_nombre_archivo_vault("Nombre de la imagen en el vault (sin extensión):", nombre_imagen, sizeof(nombre_imagen), images_dir, NULL);
 
     if (strlen(nombre_imagen) == 0) {
         printf("Error: Debe ingresar el nombre de la imagen.\n");
         return;
     }
 
-    printf("Nombre de la clave privada (sin extensión): ");
-    solicitar_string("", nombre_clave, sizeof(nombre_clave));
+    solicitar_nombre_archivo_vault("Nombre de la clave privada (sin extensión):", nombre_clave, sizeof(nombre_clave), keys_dir, ".pem");
 
     if (strlen(nombre_clave) == 0) {
         printf("Error: Debe ingresar el nombre de la clave.\n");
@@ -98,14 +102,14 @@ void menu_generar_contraseña(const config_t *config) {
 
     mostrar_menu_generar_contraseña();
 
-    solicitar_archivo("Ruta de la imagen:", img_path, sizeof(img_path));
+    solicitar_archivo_con_autocompletado("Ruta de la imagen:", img_path, sizeof(img_path));
 
     if (!archivo_existe(img_path)) {
         printf("Error: La imagen especificada no existe.\n");
         return;
     }
 
-    solicitar_archivo("Ruta de la clave privada:", key_path, sizeof(key_path));
+    solicitar_archivo_con_autocompletado("Ruta de la clave privada:", key_path, sizeof(key_path));
 
     if (!validar_clave_privada(key_path)) {
         printf("Error: La clave privada no es válida o no existe.\n");
